@@ -1,0 +1,228 @@
+package com.pitchstone.plugin.rememberme
+
+import grails.test.mixin.support.GrailsUnitTestMixin
+import org.codehaus.groovy.grails.plugins.codecs.Base64Codec
+import org.springframework.web.context.request.RequestAttributes as RA
+import org.springframework.web.context.request.RequestContextHolder as RCH
+import spock.lang.Specification
+import static com.pitchstone.plugin.rememberme.BasicSessionlessRememberMeService.*
+
+@Mixin(GrailsUnitTestMixin)
+class BasicSessionlessRememberMeServiceSpec extends Specification {
+    static final long JAN_1_2000 = 946684800000
+    static final long SEP_9_2001 = 1000000000000
+
+    def config = new ConfigObject()
+    def service = new BasicSessionlessRememberMeService(
+        grailsApplication: new ConfigObject(),
+    )
+
+    def setup() {
+        mockCodec Base64Codec
+
+        def request = [
+            cookies: [] as Cookie[],
+            getAttribute: { request[it] },
+            removeAttribute: { request.remove(it) },
+            setAttribute: { n,v -> request[n] = v },
+        ]
+        RCH.metaClass.static.getRequestAttributes = { -> [
+            getAttribute: { String name, int scope -> request[name] },
+            removeAttribute: { String name, int scope -> request.remove name },
+            setAttribute: { String name, Object value, int scope -> 
+                request[name] = value
+            },
+            request: request,
+        ] }
+
+        service.grailsApplication.config.grails.plugin.basicSessionlessRememberMe =
+            config
+    }
+
+
+    def "initialized with defaults"() {
+        when:
+            service.afterPropertiesSet()
+        then:
+            service.cookieName == 'bs_me'
+            service.domain == ''
+            service.secure == false
+            service.httpOnly == true
+            service.shortTerm == '30 minutes'
+            service.longTerm == '1 month'
+    }
+
+    def "config overrides defaults"() {
+        when:
+            config.cookieName = 'remember'
+            config.domain = 'example.com'
+            config.secure = true
+            config.httpOnly = false
+            config.shortTerm = '3 hours'
+            config.longTerm = '10 days'
+            service.afterPropertiesSet()
+        then:
+            service.cookieName == 'remember'
+            service.domain == 'example.com'
+            service.secure == true
+            service.httpOnly == false
+            service.shortTerm == '3 hours'
+            service.longTerm == '10 days'
+    }
+
+
+    def "when null period, calculate until throws exception"() {
+        when: service.calculateUntil(null)
+        then: thrown IllegalArgumentException
+    }
+
+    def "when empty period, calculate until throws exception"() {
+        when: service.calculateUntil('')
+        then: thrown IllegalArgumentException
+    }
+
+    def "when null now, calculate until throws exception"() {
+        when: service.calculateUntil('1 day', null)
+        then: thrown IllegalArgumentException
+    }
+
+    def "when bogus period, calculate until throws exception"() {
+        when: service.calculateUntil('foo')
+        then: thrown IllegalArgumentException
+    }
+
+    def "when bogus unit, calculate until throws exception"() {
+        when: service.calculateUntil('1 foo')
+        then: thrown IllegalArgumentException
+    }
+
+    def "when bogus part, calculate until throws exception"() {
+        when: service.calculateUntil('1 month, 2 foo, 3 minutes')
+        then: thrown IllegalArgumentException
+    }
+
+    def "calculate until 1 second"() {
+        setup:
+            def start = new Date(SEP_9_2001)
+            def end = SEP_9_2001 + 1000l
+        expect:
+            service.calculateUntil('1 second', start).time == end
+            service.calculateUntil('1s', start).time == end
+            service.calculateUntil('1S', start).time == end
+    }
+
+    def "calculate until 1 minute"() {
+        setup:
+            def start = new Date(SEP_9_2001)
+            def end = SEP_9_2001 + 60 * 1000l
+        expect:
+            service.calculateUntil('1 minute', start).time == end
+            service.calculateUntil('1m', start).time == end
+            service.calculateUntil('1MI', start).time == end
+    }
+
+    def "calculate until 1 hour"() {
+        setup:
+            def start = new Date(SEP_9_2001)
+            def end = SEP_9_2001 + 60 * 60 * 1000l
+        expect:
+            service.calculateUntil('1 hour', start).time == end
+            service.calculateUntil('1h', start).time == end
+            service.calculateUntil('1H', start).time == end
+    }
+
+    def "calculate until 1 day"() {
+        setup:
+            def start = new Date(SEP_9_2001)
+            def end = SEP_9_2001 + 24 * 60 * 60 * 1000l
+        expect:
+            service.calculateUntil('1 day', start).time == end
+            service.calculateUntil('1d', start).time == end
+            service.calculateUntil('1D', start).time == end
+    }
+
+    def "calculate until 1 week"() {
+        setup:
+            def start = new Date(SEP_9_2001)
+            def end = SEP_9_2001 + 7 * 24 * 60 * 60 * 1000l
+        expect:
+            service.calculateUntil('1 week', start).time == end
+            service.calculateUntil('1w', start).time == end
+            service.calculateUntil('1W', start).time == end
+    }
+
+    def "calculate until 1 month"() {
+        setup:
+            def start = new Date(SEP_9_2001)
+            def end = SEP_9_2001 + 30 * 24 * 60 * 60 * 1000l
+        expect:
+            service.calculateUntil('1 month', start).time == end
+            service.calculateUntil('1mo', start).time == end
+            service.calculateUntil('1M', start).time == end
+    }
+
+    def "calculate until 1 year"() {
+        setup:
+            def start = new Date(SEP_9_2001)
+            def end = SEP_9_2001 + 365 * 24 * 60 * 60 * 1000l
+        expect:
+            service.calculateUntil('1 year', start).time == end
+            service.calculateUntil('1y', start).time == end
+            service.calculateUntil('1Y', start).time == end
+    }
+
+    def "calculate until 3 hours, 45 minutes"() {
+        setup:
+            def start = new Date(SEP_9_2001)
+            def end = SEP_9_2001 + 3 * 60 * 60 * 1000l + 45 * 60 * 1000l
+        expect:
+            service.calculateUntil('3 hours, 45 minutes', start).time == end
+            service.calculateUntil('3hr, 45min', start).time == end
+            service.calculateUntil('3H 45MIN', start).time == end
+            service.calculateUntil('3h45m', start).time == end
+    }
+
+    def "calculate until 1 month, 0 weeks, 2 days"() {
+        setup:
+            def start = new Date(SEP_9_2001)
+            def end = SEP_9_2001 + 32 * 24 * 60 * 60 * 1000l
+        expect:
+            service.calculateUntil('1 month, 0 weeks, 2 days', start).time == end
+            service.calculateUntil('1mo, 0wk, 2d', start).time == end
+            service.calculateUntil('1M 0W 2D', start).time == end
+            service.calculateUntil('1M0w2d', start).time == end
+    }
+
+
+    def "when action is forget, tokenFromCookie is null"() {
+        when: service.setAttr ATTR_ACTION, ACTION_FORGET
+        then: service.tokenFromCookie == null
+    }
+
+    def "when action is remember, tokenFromCookie is null"() {
+        when: service.setAttr ATTR_ACTION, ACTION_REMEMBER
+        then: service.tokenFromCookie == null
+    }
+
+    def "when no cookies, tokenFromCookie is null"() {
+        expect: service.tokenFromCookie == null
+    }
+
+    def "when other cookies, tokenFromCookie is null"() {
+        when: service.request.cookies = [[name: 'foo'], [name: 'bar']] as Cookie[]
+        then: service.tokenFromCookie == null
+    }
+
+    def "tokenFromCookie extracts rememberme cookie"() {
+        when:
+            service.afterPropertiesSet()
+            service.request.cookies = [
+                [name: 'foo'],
+                [name: 'bs_me', value: 'AQID'],
+                [name: 'bar'],
+            ] as Cookie[]
+        then:
+            service.tokenFromCookie == [1,2,3] as byte[]
+    }
+
+}
