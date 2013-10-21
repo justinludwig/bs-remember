@@ -138,7 +138,7 @@ class BasicSessionlessRememberMeService implements InitializingBean {
         else
             setAction null, token
 
-        users.hitRememberMeToken token, request
+        users.hitRememberMeToken user?.token ?: token, request
         return true
     }
 
@@ -169,7 +169,10 @@ class BasicSessionlessRememberMeService implements InitializingBean {
      * Sets the specified request attribute.
      */
     protected void setAttr(key, value) {
-        RCH?.requestAttributes?.setAttribute key, value, RA.SCOPE_REQUEST
+        if (value == null)
+            RCH?.requestAttributes?.removeAttribute key, RA.SCOPE_REQUEST
+        else
+            RCH?.requestAttributes?.setAttribute key, value, RA.SCOPE_REQUEST
     }
 
     /**

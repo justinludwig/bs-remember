@@ -194,6 +194,101 @@ class BasicSessionlessRememberMeServiceSpec extends Specification {
     }
 
 
+    def "when token is null, validateToken does nothing"() {
+        when:
+            service.setAttr ATTR_ACTION, 'no action'
+            service.setAttr ATTR_TOKEN, 'no token'
+            service.setAttr ATTR_UNTIL, 'no until'
+        then:
+            !service.validateToken(null)
+            service.getAttr(ATTR_ACTION) == 'no action'
+            service.getAttr(ATTR_TOKEN) == 'no token'
+            service.getAttr(ATTR_UNTIL) == 'no until'
+    }
+
+    def "when token invalid, validateToken forgets token"() {
+        when:
+            service.setAttr ATTR_ACTION, 'no action'
+            service.setAttr ATTR_TOKEN, 'no token'
+            service.setAttr ATTR_UNTIL, 'no until'
+
+            def hit = null
+            service.basicSessionlessRememberMeUserManagerService = [
+                validateRememberMeToken: { t,r -> null },
+                hitRememberMeToken: { t,r -> hit = t },
+            ]
+        then:
+            !service.validateToken([1,2,3] as byte[])
+            service.getAttr(ATTR_ACTION) == ACTION_FORGET
+            service.getAttr(ATTR_TOKEN) == null
+            service.getAttr(ATTR_UNTIL) == null
+            hit == null
+    }
+
+    def "when token valid, validateToken clears action"() {
+        when:
+            service.setAttr ATTR_ACTION, 'no action'
+            service.setAttr ATTR_TOKEN, 'no token'
+            service.setAttr ATTR_UNTIL, 'no until'
+
+            def hit = null
+            service.basicSessionlessRememberMeUserManagerService = [
+                validateRememberMeToken: { t,r -> [refreshWith: null] },
+                hitRememberMeToken: { t,r -> hit = t },
+            ]
+        then:
+            service.validateToken([1,2,3] as byte[])
+            service.getAttr(ATTR_ACTION) == null
+            service.getAttr(ATTR_TOKEN) == [1,2,3] as byte[]
+            service.getAttr(ATTR_UNTIL) == null
+            hit == [1,2,3] as byte[]
+    }
+
+    def "when token needs refresh, validateToken remembers new token"() {
+        when:
+            service.setAttr ATTR_ACTION, 'no action'
+            service.setAttr ATTR_TOKEN, 'no token'
+            service.setAttr ATTR_UNTIL, 'no until'
+
+            def hit = null
+            service.basicSessionlessRememberMeUserManagerService = [
+                validateRememberMeToken: { t,r -> [refreshWith: [
+                    token: [4,5,6] as byte[],
+                    until: null,
+                ]] },
+                hitRememberMeToken: { t,r -> hit = t },
+            ]
+        then:
+            service.validateToken([1,2,3] as byte[])
+            service.getAttr(ATTR_ACTION) == ACTION_REMEMBER
+            service.getAttr(ATTR_TOKEN) == [4,5,6] as byte[]
+            service.getAttr(ATTR_UNTIL) == null
+            hit == [4,5,6] as byte[]
+    }
+
+    def "when token needs refresh with new expires, validateToken remembers new token and new expires"() {
+        when:
+            service.setAttr ATTR_ACTION, 'no action'
+            service.setAttr ATTR_TOKEN, 'no token'
+            service.setAttr ATTR_UNTIL, 'no until'
+
+            def hit = null
+            service.basicSessionlessRememberMeUserManagerService = [
+                validateRememberMeToken: { t,r -> [refreshWith: [
+                    token: [4,5,6] as byte[],
+                    until: new Date(SEP_9_2001),
+                ]] },
+                hitRememberMeToken: { t,r -> hit = t },
+            ]
+        then:
+            service.validateToken([1,2,3] as byte[])
+            service.getAttr(ATTR_ACTION) == ACTION_REMEMBER
+            service.getAttr(ATTR_TOKEN) == [4,5,6] as byte[]
+            service.getAttr(ATTR_UNTIL) == new Date(SEP_9_2001)
+            hit == [4,5,6] as byte[]
+    }
+
+
     def "when action is forget, tokenFromCookie is null"() {
         when: service.setAttr ATTR_ACTION, ACTION_FORGET
         then: service.tokenFromCookie == null
