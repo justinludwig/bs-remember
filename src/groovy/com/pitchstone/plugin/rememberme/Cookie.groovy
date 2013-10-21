@@ -38,6 +38,17 @@ class Cookie extends ServletCookie {
     /** Pre-servlet-3.0 compatability. */
     boolean httpOnly
 
+    /** Sets maxAge via expiration date. */
+    void setExpires(Date date, long now = 0) {
+        if (date) {
+            maxAge = ((date.time - (now ?: System.currentTimeMillis())) / 1000) as Integer
+            if (maxAge < 0)
+                maxAge = 0
+        } else {
+            maxAge = -1
+        }
+    }
+
     /**
      * Sets this cookie on the specified response.
      */
@@ -64,6 +75,7 @@ class Cookie extends ServletCookie {
         maxAge = 0
         if (!path)
             path = '/'
+        value = null
         response.addCookie this
     }
 
@@ -79,7 +91,7 @@ class Cookie extends ServletCookie {
      * the specified seconds in the future.
      */
     String formatMaxAge(Integer maxAge, long now = 0) {
-        def ms = maxAge ? (now ?: System.currentTimeMillis()) + maxAge * 1000 : 0
+        def ms = maxAge ? (now ?: System.currentTimeMillis()) + maxAge * 1000l : 0
         formatDate new Date(ms)
     }
 
