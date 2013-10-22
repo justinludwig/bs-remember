@@ -50,33 +50,70 @@ class BasicSessionlessRememberMeService implements InitializingBean {
 
     // impl
 
-    void remember(/*User*/ user) {
-        setAction ACTION_REMEMBER, user.token, user.until
+    /**
+     * Remembers the specified user as the current user,
+     * refreshing the rememberme cookie.
+     * Calls {@link UserManager#saveRememberMeToken}.
+     */
+    void remember(User user) {
+        setAction ACTION_REMEMBER, user.rememberMeToken, user.rememberMeUntil
         users?.saveRememberMeToken user
     }
 
+    /**
+     * Forgets the current user, clearing the rememberme cookie.
+     * Calls {@link UserManager#dumpRememberMeToken}.
+     */
     void forget() {
+        def token = this.token
         action = ACTION_FORGET
-        users?.dumpRememberMeToken user
+        users?.dumpRememberMeToken token
     }
 
+    /**
+     * True if the current user is remembered.
+     */
     boolean isRemembered() {
         token
     }
 
-    def /*User*/ getUser() {
+    /**
+     * Returns the current user, or null.
+     */
+    def User getUser() {
         def t = token
         t ? users?.findUserForRememberMeToken(t) : null
     }
 
+    /**
+     * Returns the current rememberme cookie token.
+     */
     byte[] getToken() {
         def token = getAttr(ATTR_TOKEN)
         if (token) return token
+
+        def action = getAttr(ATTR_ACTION)
+        if (action == ACTION_FORGET) return null
 
         token = tokenFromCookie
         validateToken(token) ? token : null
     }
 
+    /**
+     * Returns the date at which the specified period expires.
+     * @param period Period definition, such as '1 month and 5 days'
+     * (or '1 month, 5 days' or '1M5d', etc).
+     * Amounts must be whole numbers, units must be one of:<ul>
+     *  <li>years
+     *  <li>months
+     *  <li>weeks
+     *  <li>days
+     *  <li>hours
+     *  <li>minutes
+     *  <li>seconds
+     * </ul>
+     * @param now (optional) Start date for period (defaults to current date).
+     */
     Date calculateUntil(String period, Date now = new Date()) {
         if (!period) throw new IllegalArgumentException('empty period')
         if (!now) throw new IllegalArgumentException('null now')
@@ -125,7 +162,7 @@ class BasicSessionlessRememberMeService implements InitializingBean {
 
         def validation = users?.validateRememberMeToken(token, request)
         // forget invalid token
-        if (!validation || validation.INVALID) {
+        if (!validation?.valid) {
             action = ACTION_FORGET
             return false
         }
@@ -133,12 +170,12 @@ class BasicSessionlessRememberMeService implements InitializingBean {
         def user = validation.refreshWith
         // refresh with new token
         if (user)
-            setAction ACTION_REMEMBER, user.token, user.until
+            setAction ACTION_REMEMBER, user.rememberMeToken, user.rememberMeUntil
         // just use existing token
         else
             setAction null, token
 
-        users.hitRememberMeToken user?.token ?: token, request
+        users.hitRememberMeToken user?.rememberMeToken ?: token, request
         return true
     }
 
