@@ -82,7 +82,7 @@ class BasicSessionlessRememberMeService implements InitializingBean {
      */
     def User getUser() {
         def t = token
-        t ? users?.findUserForRememberMeToken(t) : null
+        t ? users?.findUserByRememberMeToken(t) : null
     }
 
     /**

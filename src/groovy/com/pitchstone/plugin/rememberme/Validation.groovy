@@ -4,8 +4,14 @@ package com.pitchstone.plugin.rememberme
  * Represents the result of validating a cookie token.
  */
 interface Validation {
-    static final Validation VALID = [valid: true] as Validation
-    static final Validation INVALID = [valid: false] as Validation
+    static final Validation VALID = [
+        isValid: { -> true },
+        getRefreshWith: { -> null },
+    ] as Validation
+    static final Validation INVALID = [
+        isValid: { -> false },
+        getRefreshWith: { -> null },
+    ] as Validation
 
     /**
      * True if token is valid.

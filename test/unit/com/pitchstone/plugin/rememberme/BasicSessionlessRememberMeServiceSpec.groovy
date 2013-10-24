@@ -240,7 +240,7 @@ class BasicSessionlessRememberMeServiceSpec extends Specification {
         when:
             service.setAttr ATTR_TOKEN, [1,2,3] as byte[]
             service.basicSessionlessRememberMeUserManagerService = [
-                findUserForRememberMeToken: { [
+                findUserByRememberMeToken: { [
                     getRememberMeToken: { -> it },
                 ] as User },
             ]
