@@ -1,5 +1,7 @@
 package com.pitchstone.plugin.rememberme.rotating
 
+import com.pitchstone.plugin.rememberme.BigIntToken
+import com.pitchstone.plugin.rememberme.Token
 import com.pitchstone.plugin.rememberme.BasicSessionlessRememberMeService
 import spock.lang.Specification
 import static com.pitchstone.plugin.rememberme.Validation.*
@@ -7,8 +9,8 @@ import static com.pitchstone.plugin.rememberme.Validation.*
 class RotatingTokenUserManagerSpec extends Specification {
     static final Date JAN_1_2000 = new Date(946684800000)
 
-    static final byte[] B123 = [1,2,3] as byte[]
-    static final byte[] B456 = [4,5,6] as byte[]
+    static final Token B123 = new BigIntToken(bigInt: 123)
+    static final Token B456 = new BigIntToken(bigInt: 456)
 
     def config = new ConfigObject()
     def manager = new RotatingTokenUserManager(
@@ -91,6 +93,11 @@ class RotatingTokenUserManagerSpec extends Specification {
             manager.hitRememberMeToken(B123, [:])
         then:
             1 * store.hitRememberMeUserByToken(B123)
+    }
+
+
+    def "parse creates BigIntToken"() {
+        expect: manager.parseRememberMeToken('ew', [:]) == B123
     }
 
 
@@ -299,11 +306,11 @@ class RotatingTokenUserManagerSpec extends Specification {
 }
 
 class StubUser implements RotatingTokenUser {
-    byte[] rememberMeToken
+    Token rememberMeToken
     Date rememberMeUntil
     Date lastHit
     Date rememberMeExpires
     String rememberMePeriod
-    byte[] rememberMePreviousToken
+    Token rememberMePreviousToken
     boolean rememberMeSessionCookie
 }

@@ -29,11 +29,6 @@ class BasicSessionlessRememberMeService implements InitializingBean {
     /** True if not accessible to JavaScript. */
     Boolean httpOnly
 
-    /** Short-term period definition. */
-    String shortTerm
-    /** Long-term period definition. */
-    String longTerm
-
     // InitializingBean
 
     void afterPropertiesSet() {
@@ -43,9 +38,6 @@ class BasicSessionlessRememberMeService implements InitializingBean {
         domain = domain ?: config?.domain ?: ''
         secure = secure != null ? secure : !!config?.secure
         httpOnly = httpOnly != null ? httpOnly : config?.httpOnly != false
-
-        shortTerm = shortTerm ?: config?.shortTerm ?: '30 minutes'
-        longTerm = longTerm ?: config?.longTerm ?: '1 month'
     }
 
     // impl
@@ -80,7 +72,7 @@ class BasicSessionlessRememberMeService implements InitializingBean {
     /**
      * Returns the current user, or null.
      */
-    def User getUser() {
+    User getUser() {
         def t = token
         t ? users?.findUserByRememberMeToken(t) : null
     }
@@ -88,7 +80,7 @@ class BasicSessionlessRememberMeService implements InitializingBean {
     /**
      * Returns the current rememberme cookie token.
      */
-    byte[] getToken() {
+    Token getToken() {
         def token = getAttr(ATTR_TOKEN)
         if (token) return token
 
@@ -157,7 +149,7 @@ class BasicSessionlessRememberMeService implements InitializingBean {
     /**
      * Returns the token as read directly from the rememberme cookie.
      */
-    protected boolean validateToken(byte[] token) {
+    protected boolean validateToken(Token token) {
         if (!token) return false
 
         def validation = users?.validateRememberMeToken(token, request)
@@ -182,14 +174,17 @@ class BasicSessionlessRememberMeService implements InitializingBean {
     /**
      * Returns the token as read directly from the rememberme cookie.
      */
-    protected byte[] getTokenFromCookie() {
+    protected Token getTokenFromCookie() {
         // cookie no longer valid if remember/forget action set
         if (getAttr(ATTR_ACTION)) return null
 
-        cookies.find { it.name == cookieName }?.value?.decodeBase64()
+        def value = cookies.find { it.name == cookieName }?.value
+        if (!value) return
+
+        users.parseRememberMeToken value, request
     }
 
-    protected setAction(String action, byte[] token = null, Date until = null) {
+    protected setAction(String action, Token token = null, Date until = null) {
         setAttr ATTR_ACTION, action
         setAttr ATTR_TOKEN, token
         setAttr ATTR_UNTIL, until

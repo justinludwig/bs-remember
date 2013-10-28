@@ -1,7 +1,6 @@
 package com.pitchstone.plugin.rememberme
 
 import grails.test.mixin.support.GrailsUnitTestMixin
-import org.codehaus.groovy.grails.plugins.codecs.Base64Codec
 import spock.lang.Specification
 import static com.pitchstone.plugin.rememberme.BasicSessionlessRememberMeService.*
 
@@ -18,10 +17,6 @@ class BasicSessionlessRememberMeFilterSpec extends Specification {
             httpOnly: false,
         ],
     )
-
-    def setup() {
-        mockCodec Base64Codec
-    }
 
 
     def "when no action, cookie not sent"() {
@@ -41,13 +36,13 @@ class BasicSessionlessRememberMeFilterSpec extends Specification {
             def response = stubResponse()
         when:
             request[ATTR_ACTION] = ACTION_REMEMBER
-            request[ATTR_TOKEN] = [1,2,3] as byte[]
+            request[ATTR_TOKEN] = 'foo'
             request[ATTR_UNTIL] = new Date(SEP_9_2001)
             filter.writeCookie request, response, JAN_1_2000
         then:
             response.headers.size() == 1
             response.headers.'Set-Cookie' ==
-                'bs_me=AQID; expires=Sun, 09-Sep-2001 01:46:40 GMT; path=/'
+                'bs_me=foo; expires=Sun, 09-Sep-2001 01:46:40 GMT; path=/'
             response.cookies == []
     }
 
@@ -57,14 +52,14 @@ class BasicSessionlessRememberMeFilterSpec extends Specification {
             def response = stubResponse()
         when:
             request[ATTR_ACTION] = ACTION_REMEMBER
-            request[ATTR_TOKEN] = [1,2,3] as byte[]
+            request[ATTR_TOKEN] = 'foo'
             request[ATTR_UNTIL] = new Date(SEP_9_2001)
             filter.writeCookie request, response, JAN_1_2000
             filter.writeCookie request, response, JAN_1_2000
         then:
             response.headers.size() == 1
             response.headers.'Set-Cookie' ==
-                'bs_me=AQID; expires=Sun, 09-Sep-2001 01:46:40 GMT; path=/'
+                'bs_me=foo; expires=Sun, 09-Sep-2001 01:46:40 GMT; path=/'
             response.cookies == []
     }
 
@@ -74,11 +69,11 @@ class BasicSessionlessRememberMeFilterSpec extends Specification {
             def response = stubResponse()
         when:
             request[ATTR_ACTION] = ACTION_REMEMBER
-            request[ATTR_TOKEN] = [1,2,3] as byte[]
+            request[ATTR_TOKEN] = 'foo'
             filter.writeCookie request, response, JAN_1_2000
         then:
             response.headers.size() == 1
-            response.headers.'Set-Cookie' == 'bs_me=AQID; path=/'
+            response.headers.'Set-Cookie' == 'bs_me=foo; path=/'
             response.cookies == []
     }
 
@@ -88,7 +83,7 @@ class BasicSessionlessRememberMeFilterSpec extends Specification {
             def response = stubResponse()
         when:
             request[ATTR_ACTION] = ACTION_FORGET
-            request[ATTR_TOKEN] = [1,2,3] as byte[]
+            request[ATTR_TOKEN] = 'foo'
             request[ATTR_UNTIL] = new Date(SEP_9_2001)
             filter.writeCookie request, response, JAN_1_2000
         then:
@@ -106,7 +101,7 @@ class BasicSessionlessRememberMeFilterSpec extends Specification {
             def response = stubResponse()
         when:
             request[ATTR_ACTION] = ACTION_FORGET
-            request[ATTR_TOKEN] = [1,2,3] as byte[]
+            request[ATTR_TOKEN] = 'foo'
             request[ATTR_UNTIL] = new Date(SEP_9_2001)
             filter.writeCookie request, response, JAN_1_2000
         then:

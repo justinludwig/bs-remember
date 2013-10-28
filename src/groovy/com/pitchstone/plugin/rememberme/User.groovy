@@ -8,7 +8,7 @@ interface User {
     /**
      * Current cookie token for logged-in user.
      */
-    byte[] getRememberMeToken()
+    Token getRememberMeToken()
 
     /**
      * Date at which the user's cookie should expire;

@@ -17,14 +17,23 @@ interface UserManager {
      * Called by {@link BasicSessionlessRememberMeService#forget}.
      * @param token Token of user to dump.
      */
-    void dumpRememberMeToken(byte[] token)
+    void dumpRememberMeToken(Token token)
 
     /**
      * Returns the specified user session; or null if not found.
      * @param token Token of user to find.
      * @return Found user or null.
      */
-    User findUserByRememberMeToken(byte[] token)
+    User findUserByRememberMeToken(Token token)
+
+    /**
+     * Called by {@link BasicSessionlessRememberMeService} (at most once a request)
+     * to parse the request's rememberme cookie into a token.
+     * @param cookieValue Value to parse.
+     * @param request HttpServletRequest.
+     * @return Parsed token.
+     */
+    Token parseRememberMeToken(String cookieValue, request)
 
     /**
      * Called by {@link BasicSessionlessRememberMeService} (at most once a request)
@@ -33,7 +42,7 @@ interface UserManager {
      * @param request HttpServletRequest.
      * @return Validation result.
      */
-    Validation validateRememberMeToken(byte[] token, request)
+    Validation validateRememberMeToken(Token token, request)
 
     /**
      * Called by {@link BasicSessionlessRememberMeService} (at most once a request)
@@ -41,5 +50,5 @@ interface UserManager {
      * @param token Validated token.
      * @param request HttpServletRequest.
      */
-    void hitRememberMeToken(byte[] token, request)
+    void hitRememberMeToken(Token token, request)
 }

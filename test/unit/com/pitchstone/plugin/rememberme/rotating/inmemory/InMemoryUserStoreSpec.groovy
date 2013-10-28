@@ -1,12 +1,14 @@
 package com.pitchstone.plugin.rememberme.rotating.inmemory
 
+import com.pitchstone.plugin.rememberme.BigIntToken
+import com.pitchstone.plugin.rememberme.Token
 import com.pitchstone.plugin.rememberme.rotating.RotatingTokenUser
 import spock.lang.Specification
 
 class InMemoryUserStoreSpec extends Specification {
-    static final byte[] B123 = [1,2,3] as byte[]
-    static final byte[] B456 = [4,5,6] as byte[]
-    static final byte[] B789 = [7,8,9] as byte[]
+    static final Token B123 = new BigIntToken(bigInt: 123)
+    static final Token B456 = new BigIntToken(bigInt: 456)
+    static final Token B789 = new BigIntToken(bigInt: 789)
 
     def store = new InMemoryUserStore()
 
@@ -150,11 +152,11 @@ class InMemoryUserStoreSpec extends Specification {
 }
 
 class StubUser implements RotatingTokenUser {
-    byte[] rememberMeToken
+    Token rememberMeToken
     Date rememberMeUntil
     Date lastHit
     Date rememberMeExpires
     String rememberMePeriod
-    byte[] rememberMePreviousToken
+    Token rememberMePreviousToken
     boolean rememberMeSessionCookie
 }

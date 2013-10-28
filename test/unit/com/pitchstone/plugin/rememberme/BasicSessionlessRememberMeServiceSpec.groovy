@@ -1,5 +1,7 @@
 package com.pitchstone.plugin.rememberme
 
+import com.pitchstone.plugin.rememberme.BigIntToken
+import com.pitchstone.plugin.rememberme.Token
 import grails.test.mixin.support.GrailsUnitTestMixin
 import org.codehaus.groovy.grails.plugins.codecs.Base64Codec
 import org.springframework.web.context.request.RequestAttributes as RA
@@ -11,6 +13,9 @@ import static com.pitchstone.plugin.rememberme.BasicSessionlessRememberMeService
 class BasicSessionlessRememberMeServiceSpec extends Specification {
     static final long JAN_1_2000 = 946684800000
     static final long SEP_9_2001 = 1000000000000
+
+    static final Token B123 = new BigIntToken(bigInt: 123)
+    static final Token B456 = new BigIntToken(bigInt: 456)
 
     def config = new ConfigObject()
     def service = new BasicSessionlessRememberMeService(
@@ -48,8 +53,6 @@ class BasicSessionlessRememberMeServiceSpec extends Specification {
             service.domain == ''
             service.secure == false
             service.httpOnly == true
-            service.shortTerm == '30 minutes'
-            service.longTerm == '1 month'
     }
 
     def "config overrides defaults"() {
@@ -58,16 +61,12 @@ class BasicSessionlessRememberMeServiceSpec extends Specification {
             config.domain = 'example.com'
             config.secure = true
             config.httpOnly = false
-            config.shortTerm = '3 hours'
-            config.longTerm = '10 days'
             service.afterPropertiesSet()
         then:
             service.cookieName == 'remember'
             service.domain == 'example.com'
             service.secure == true
             service.httpOnly == false
-            service.shortTerm == '3 hours'
-            service.longTerm == '10 days'
     }
 
 
@@ -203,12 +202,12 @@ class BasicSessionlessRememberMeServiceSpec extends Specification {
             ]
             service.forget()
             service.remember([
-                getRememberMeToken: { -> [1,2,3] as byte[] },
+                getRememberMeToken: { -> B123 },
                 getRememberMeUntil: { -> new Date(SEP_9_2001) },
             ] as User)
         then:
-            service.token == [1,2,3] as byte[]
-            u.rememberMeToken == [1,2,3] as byte[]
+            service.token == B123
+            u.rememberMeToken == B123
             service.getAttr(ATTR_UNTIL) == new Date(SEP_9_2001)
     }
 
@@ -221,13 +220,13 @@ class BasicSessionlessRememberMeServiceSpec extends Specification {
                 dumpRememberMeToken: { t = it },
             ]
             service.remember([
-                getRememberMeToken: { -> [1,2,3] as byte[] },
+                getRememberMeToken: { -> B123 },
                 getRememberMeUntil: { -> new Date(SEP_9_2001) },
             ] as User)
             service.forget()
         then:
             service.token == null
-            t == [1,2,3] as byte[]
+            t == B123
             service.getAttr(ATTR_UNTIL) == null
     }
 
@@ -238,13 +237,13 @@ class BasicSessionlessRememberMeServiceSpec extends Specification {
 
     def "when valid token, user found"() {
         when:
-            service.setAttr ATTR_TOKEN, [1,2,3] as byte[]
+            service.setAttr ATTR_TOKEN, B123
             service.basicSessionlessRememberMeUserManagerService = [
                 findUserByRememberMeToken: { [
                     getRememberMeToken: { -> it },
                 ] as User },
             ]
-        then: service.user.rememberMeToken == [1,2,3] as byte[]
+        then: service.user.rememberMeToken == B123
     }
 
 
@@ -253,7 +252,7 @@ class BasicSessionlessRememberMeServiceSpec extends Specification {
     }
 
     def "when valid token, remembered"() {
-        when: service.setAttr ATTR_TOKEN, [1,2,3] as byte[]
+        when: service.setAttr ATTR_TOKEN, B123
         then: service.remembered
     }
 
@@ -263,26 +262,28 @@ class BasicSessionlessRememberMeServiceSpec extends Specification {
     }
 
     def "when token already parsed as attr, token uses attr value"() {
-        when: service.setAttr ATTR_TOKEN, [1,2,3] as byte[]
-        then: service.token == [1,2,3] as byte[]
+        when: service.setAttr ATTR_TOKEN, B123
+        then: service.token == B123
     }
 
     def "when token not parsed but in cookie, token checks cookie and validates"() {
         when:
             service.afterPropertiesSet()
-            service.request.cookies = [[name: 'bs_me', value: 'AQID']] as Cookie[]
+            service.request.cookies = [[name: 'bs_me', value: 'ew']] as Cookie[]
             service.basicSessionlessRememberMeUserManagerService = [
+                parseRememberMeToken: { v,r -> B123 },
                 validateRememberMeToken: { t,r -> [valid: true] },
                 hitRememberMeToken: { t,r -> },
             ]
-        then: service.token == [1,2,3] as byte[]
+        then: service.token == B123
     }
 
     def "when invalid token not parsed but in cookie, token checks cookie and is null"() {
         when:
             service.afterPropertiesSet()
-            service.request.cookies = [[name: 'bs_me', value: 'AQID']] as Cookie[]
+            service.request.cookies = [[name: 'bs_me', value: 'ew']] as Cookie[]
             service.basicSessionlessRememberMeUserManagerService = [
+                parseRememberMeToken: { v,r -> B123 },
                 validateRememberMeToken: { t,r -> null },
                 hitRememberMeToken: { t,r -> },
             ]
@@ -292,7 +293,7 @@ class BasicSessionlessRememberMeServiceSpec extends Specification {
     def "when invalid token already parsed, token not re-parsed, is null"() {
         when:
             service.afterPropertiesSet()
-            service.request.cookies = [[name: 'bs_me', value: 'AQID']] as Cookie[]
+            service.request.cookies = [[name: 'bs_me', value: 'ew']] as Cookie[]
             service.setAttr ATTR_ACTION, ACTION_FORGET
         then: service.token == null
     }
@@ -322,7 +323,7 @@ class BasicSessionlessRememberMeServiceSpec extends Specification {
                 hitRememberMeToken: { t,r -> hit = t },
             ]
         then:
-            !service.validateToken([1,2,3] as byte[])
+            !service.validateToken(B123)
             service.getAttr(ATTR_ACTION) == ACTION_FORGET
             service.getAttr(ATTR_TOKEN) == null
             service.getAttr(ATTR_UNTIL) == null
@@ -341,11 +342,11 @@ class BasicSessionlessRememberMeServiceSpec extends Specification {
                 hitRememberMeToken: { t,r -> hit = t },
             ]
         then:
-            service.validateToken([1,2,3] as byte[])
+            service.validateToken(B123)
             service.getAttr(ATTR_ACTION) == null
-            service.getAttr(ATTR_TOKEN) == [1,2,3] as byte[]
+            service.getAttr(ATTR_TOKEN) == B123
             service.getAttr(ATTR_UNTIL) == null
-            hit == [1,2,3] as byte[]
+            hit == B123
     }
 
     def "when token needs refresh, validateToken remembers new token"() {
@@ -357,17 +358,17 @@ class BasicSessionlessRememberMeServiceSpec extends Specification {
             def hit = null
             service.basicSessionlessRememberMeUserManagerService = [
                 validateRememberMeToken: { t,r -> [valid: true, refreshWith: [
-                    rememberMeToken: [4,5,6] as byte[],
+                    rememberMeToken: B456,
                     rememberMeUntil: null,
                 ]] },
                 hitRememberMeToken: { t,r -> hit = t },
             ]
         then:
-            service.validateToken([1,2,3] as byte[])
+            service.validateToken(B123)
             service.getAttr(ATTR_ACTION) == ACTION_REMEMBER
-            service.getAttr(ATTR_TOKEN) == [4,5,6] as byte[]
+            service.getAttr(ATTR_TOKEN) == B456
             service.getAttr(ATTR_UNTIL) == null
-            hit == [4,5,6] as byte[]
+            hit == B456
     }
 
     def "when token needs refresh with new expires, validateToken remembers new token and new expires"() {
@@ -379,17 +380,17 @@ class BasicSessionlessRememberMeServiceSpec extends Specification {
             def hit = null
             service.basicSessionlessRememberMeUserManagerService = [
                 validateRememberMeToken: { t,r -> [valid: true, refreshWith: [
-                    rememberMeToken: [4,5,6] as byte[],
+                    rememberMeToken: B456,
                     rememberMeUntil: new Date(SEP_9_2001),
                 ]] },
                 hitRememberMeToken: { t,r -> hit = t },
             ]
         then:
-            service.validateToken([1,2,3] as byte[])
+            service.validateToken(B123)
             service.getAttr(ATTR_ACTION) == ACTION_REMEMBER
-            service.getAttr(ATTR_TOKEN) == [4,5,6] as byte[]
+            service.getAttr(ATTR_TOKEN) == B456
             service.getAttr(ATTR_UNTIL) == new Date(SEP_9_2001)
-            hit == [4,5,6] as byte[]
+            hit == B456
     }
 
 
@@ -417,11 +418,14 @@ class BasicSessionlessRememberMeServiceSpec extends Specification {
             service.afterPropertiesSet()
             service.request.cookies = [
                 [name: 'foo'],
-                [name: 'bs_me', value: 'AQID'],
+                [name: 'bs_me', value: 'ew'],
                 [name: 'bar'],
             ] as Cookie[]
+            service.basicSessionlessRememberMeUserManagerService = [
+                parseRememberMeToken: { v,r -> new BigIntToken(cookieValue: v) },
+            ]
         then:
-            service.tokenFromCookie == [1,2,3] as byte[]
+            service.tokenFromCookie == B123
     }
 
 }

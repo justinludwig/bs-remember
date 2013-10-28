@@ -1,5 +1,7 @@
 package com.pitchstone.plugin.rememberme.rotating
 
+import com.pitchstone.plugin.rememberme.BigIntToken
+import com.pitchstone.plugin.rememberme.Token
 import com.pitchstone.plugin.rememberme.User
 import com.pitchstone.plugin.rememberme.UserManager
 import com.pitchstone.plugin.rememberme.Validation
@@ -53,15 +55,19 @@ class RotatingTokenUserManager implements UserManager, InitializingBean {
         store.addRememberMeUser user
     }
 
-    void dumpRememberMeToken(byte[] token) {
+    void dumpRememberMeToken(Token token) {
         store.removeRememberMeUserByToken token
     }
 
-    User findUserByRememberMeToken(byte[] token) {
+    User findUserByRememberMeToken(Token token) {
         store.findRememberMeUserByToken token
     }
 
-    Validation validateRememberMeToken(byte[] token, request) {
+    Token parseRememberMeToken(String cookieValue, request) {
+        new BigIntToken(cookieValue: cookieValue)
+    }
+
+    Validation validateRememberMeToken(Token token, request) {
         def user = store.findRememberMeUserByToken(token)
         // invalid if pruned
         if (!user) return Validation.INVALID
@@ -73,7 +79,7 @@ class RotatingTokenUserManager implements UserManager, InitializingBean {
         ] as Validation
     }
 
-    void hitRememberMeToken(byte[] token, request) {
+    void hitRememberMeToken(Token token, request) {
         store.hitRememberMeUserByToken token
     }
 
@@ -118,10 +124,8 @@ class RotatingTokenUserManager implements UserManager, InitializingBean {
     /**
      * Generates a new random token.
      */
-    byte[] generateToken() {
-        def rnd = new byte[24]
-        new SecureRandom().nextBytes(rnd)
-        return rnd
+    Token generateToken() {
+        BigIntToken.generate()
     }
 
     /**

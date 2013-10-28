@@ -1,5 +1,6 @@
 package com.pitchstone.plugin.rememberme.rotating
 
+import com.pitchstone.plugin.rememberme.Token
 import com.pitchstone.plugin.rememberme.User
 
 /**
@@ -12,7 +13,7 @@ interface RotatingTokenUser extends User {
     /**
      * Current cookie token for logged-in user.
      */
-    byte[] rememberMeToken
+    Token rememberMeToken
 
     /**
      * Date at which the user's cookie should expire;
@@ -45,7 +46,7 @@ interface RotatingTokenUser extends User {
     /**
      * Previous cookie token for logged-in user, or null.
      */
-    byte[] rememberMePreviousToken
+    Token rememberMePreviousToken
 
     /**
      * True if cookie expires when user quits his/her browser.

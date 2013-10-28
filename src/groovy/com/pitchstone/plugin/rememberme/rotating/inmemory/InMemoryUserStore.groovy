@@ -1,5 +1,6 @@
 package com.pitchstone.plugin.rememberme.rotating.inmemory
 
+import com.pitchstone.plugin.rememberme.Token
 import com.pitchstone.plugin.rememberme.rotating.RotatingTokenUser
 import com.pitchstone.plugin.rememberme.rotating.RotatingTokenUserStore
 
@@ -12,25 +13,25 @@ class InMemoryUserStore implements RotatingTokenUserStore {
      * Maps logged-in tokens to users.
      * Tokens in this map do not need to be refreshed.
      */
-    Map<byte[],RotatingTokenUser> userByToken = [:]
+    Map<Token,RotatingTokenUser> userByToken = [:]
 
     /**
      * Maps logged-in users to tokens.
      * Tokens in this map do not need to be refreshed.
      */
-    Map<RotatingTokenUser,byte[]> tokenByUser = [:]
+    Map<RotatingTokenUser,Token> tokenByUser = [:]
 
     /**
      * Maps old logged-in tokens to users.
      * Tokens in this map need to be refreshed.
      */
-    Map<byte[],RotatingTokenUser> userByPrevious = [:]
+    Map<Token,RotatingTokenUser> userByPrevious = [:]
 
     /**
      * Maps logged-in users to old tokens.
      * Tokens in this map need to be refreshed.
      */
-    Map<RotatingTokenUser,byte[]> previousByUser = [:]
+    Map<RotatingTokenUser,Token> previousByUser = [:]
 
     // RotatingTokenUserStore
 
@@ -46,7 +47,7 @@ class InMemoryUserStore implements RotatingTokenUserStore {
         }
     }
 
-    void removeRememberMeUserByToken(byte[] token) {
+    void removeRememberMeUserByToken(Token token) {
         def user = findRememberMeUserByToken(token)
         if (!user) return
 
@@ -81,14 +82,14 @@ class InMemoryUserStore implements RotatingTokenUserStore {
         }
     }
 
-    void hitRememberMeUserByToken(byte[] token) {
+    void hitRememberMeUserByToken(Token token) {
         def user = findRememberMeUserByToken(token)
         if (!user) return
 
         user.lastHit = new Date()
     }
 
-    RotatingTokenUser findRememberMeUserByToken(byte[] token) {
+    RotatingTokenUser findRememberMeUserByToken(Token token) {
         synchronized(this) {
             userByToken[token] ?: userByPrevious[token]
         }

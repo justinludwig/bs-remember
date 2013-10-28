@@ -27,9 +27,10 @@ class BasicSessionlessRememberMeFilter implements Filter {
 
     void doFilter(ServletRequest rq, ServletResponse rs, FilterChain chain)
     throws IOException, ServletException {
-        rs = new ResponseWrapper((HttpServletResponse) rs, {
-            writeCookie rq, rs
-        })
+        if (service)
+            rs = new ResponseWrapper((HttpServletResponse) rs, {
+                writeCookie rq, rs
+            })
         chain.doFilter rq, rs
     }
 
@@ -54,8 +55,7 @@ class BasicSessionlessRememberMeFilter implements Filter {
 
         def cookie = new Cookie(
             name: service.cookieName,
-            value: token.encodeAsBase64(),
-            domain: service.domain,
+            value: token.toString(),
             path: request.contextPath ?: '/',
             secure: service.secure,
             httpOnly: service.httpOnly,
