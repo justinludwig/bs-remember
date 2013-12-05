@@ -8,6 +8,7 @@ import spock.lang.Specification
 class BasicSessionlessRememberMeTagLibSpec extends Specification {
 
 	def "user renders nothing by default"() {
+        setup: service { it.demand.getUser(1..1) { -> null } }
         expect:
             applyTemplate('<rememberme:user />') == ''
             applyTemplate('<rememberme:user property="foo" />') == ''

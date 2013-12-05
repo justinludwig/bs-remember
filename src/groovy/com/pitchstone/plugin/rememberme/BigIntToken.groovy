@@ -23,8 +23,10 @@ class BigIntToken implements Token {
     static BigIntToken generate() {
         def random = new byte[length]
         synchronized (generatorUseLock) {
-            if (generator == null || ++generatorUseCount > generatorUseMax)
+            if (generator == null || ++generatorUseCount > generatorUseMax) {
                 generator = new SecureRandom()
+                generatorUseCount = 0
+            }
             generator.nextBytes(random)
         }
         new BigIntToken(bigInt: new BigInteger(random))
