@@ -67,7 +67,7 @@ class BigIntToken implements Token {
 
     BigInteger getBigInt() {
         if (bigInt == null && cookieValue != null)
-            bigInt = new BigInteger(cookieValue.decodeBase64())
+            bigInt = new BigInteger(cookieValue.decodeURL().decodeBase64())
         return bigInt
     }
 

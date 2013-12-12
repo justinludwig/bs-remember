@@ -3,9 +3,13 @@ package com.pitchstone.plugin.rememberme.rotating
 import com.pitchstone.plugin.rememberme.BigIntToken
 import com.pitchstone.plugin.rememberme.Token
 import com.pitchstone.plugin.rememberme.BasicSessionlessRememberMeService
+import grails.test.mixin.support.GrailsUnitTestMixin
+import org.codehaus.groovy.grails.plugins.codecs.Base64Codec
+import org.codehaus.groovy.grails.plugins.codecs.URLCodec
 import spock.lang.Specification
 import static com.pitchstone.plugin.rememberme.Validation.*
 
+@Mixin(GrailsUnitTestMixin)
 class RotatingTokenUserManagerSpec extends Specification {
     static final Date JAN_1_2000 = new Date(946684800000)
 
@@ -19,6 +23,9 @@ class RotatingTokenUserManagerSpec extends Specification {
     )
 
     def setup() {
+        mockCodec Base64Codec
+        mockCodec URLCodec
+
         manager.grailsApplication.config.grails.plugin.
             basicSessionlessRememberMe.rotatingToken = config
     }

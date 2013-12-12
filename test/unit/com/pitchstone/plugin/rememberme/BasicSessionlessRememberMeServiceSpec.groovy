@@ -4,6 +4,7 @@ import com.pitchstone.plugin.rememberme.BigIntToken
 import com.pitchstone.plugin.rememberme.Token
 import grails.test.mixin.support.GrailsUnitTestMixin
 import org.codehaus.groovy.grails.plugins.codecs.Base64Codec
+import org.codehaus.groovy.grails.plugins.codecs.URLCodec
 import org.springframework.web.context.request.RequestAttributes as RA
 import org.springframework.web.context.request.RequestContextHolder as RCH
 import spock.lang.Specification
@@ -24,6 +25,7 @@ class BasicSessionlessRememberMeServiceSpec extends Specification {
 
     def setup() {
         mockCodec Base64Codec
+        mockCodec URLCodec
 
         def request = [
             cookies: [] as Cookie[],

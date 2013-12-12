@@ -30,8 +30,15 @@ interface RotatingTokenUser extends User {
 
     /**
      * Date after which the user's cookie is no longer valid; never null.
-     * The rememberMeUntil date is when the next refresh of the cookie should expire;
-     * the rememberMeExpires date is when the current cookie is no longer acceptable.
+     * The rememberMeUntil date is when the browser should stop sending the cookie;
+     * the rememberMeExpires date is when the server should stop accepting the cookie.
+     * The dates are extended when the tokens are rotated if there was a user hit
+     * since the last rotation; if there wasn't a hit, we still want the browser
+     * to keep sending the cookie until the next rotation, when we can check again
+     * to see if there was a hit and the dates should be extended.
+     * The cookie will be pruned only if the cookie expired since the last check
+     * AND there wasn't a user hit since the last check --
+     * if there was a hit, the dates always will be extended.
      */
     Date rememberMeExpires
 
@@ -50,7 +57,7 @@ interface RotatingTokenUser extends User {
 
     /**
      * True if cookie expires when user quits his/her browser.
-     * If true, rememberMeUtil should always be false
+     * If true, rememberMeUtil should be null
      * (but either way, rememberMeExpires should always reflect
      * the date after which the current cookie will no longer be valid).
      */

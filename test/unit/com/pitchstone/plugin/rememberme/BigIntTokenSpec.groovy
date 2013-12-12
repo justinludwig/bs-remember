@@ -2,6 +2,7 @@ package com.pitchstone.plugin.rememberme
 
 import grails.test.mixin.support.GrailsUnitTestMixin
 import org.codehaus.groovy.grails.plugins.codecs.Base64Codec
+import org.codehaus.groovy.grails.plugins.codecs.URLCodec
 import spock.lang.Specification
 
 @Mixin(GrailsUnitTestMixin)
@@ -9,6 +10,7 @@ class BigIntTokenSpec extends Specification {
 
     def setup() {
         mockCodec Base64Codec
+        mockCodec URLCodec
     }
 
 
@@ -40,6 +42,11 @@ class BigIntTokenSpec extends Specification {
     def "setting cookieValue sets bigInt"() {
         when: def token = new BigIntToken(cookieValue: 'ew')
         then: token.bigInt == 123
+    }
+
+    def "url-encoded cookieValues are decoded before converting to bigInt"() {
+        when: def token = new BigIntToken(cookieValue: 'X%2f%2b0')
+        then: token.bigInt == 6291380
     }
 
 
