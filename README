@@ -1,0 +1,24 @@
+Basic Sessionless Remember Me Plugin
+====================================
+
+This grails plugin keeps track of the current-user's identity via cookie, instead of the servlet session.
+
+To use, you must implement at least implement a custom `org.c02e.plugin.rememberme.rotating.RotatingTokenUserStore` class to save user-identity token values in a persistant data-store (ie a database, memcached, etc). An non-persistant, in-memory sample user-store is provided as `org.c02e.plugin.rememberme.rotating.inmemory.InMemoryUserStore`.
+
+You may also implement a custom `org.c02e.plugin.rememberme.UserManager` class to customize the management of the user-identity tokens. The default implementation (org.c02e.plugin.rememberme.rotating.RotatingTokenUserManager) rotates tokens every few minutes (by default, every 10 minutes), and allows a user to use both his/her current token and his/her previous token to authenticate (allowing a "grace" period for the user's browser to receive and start sending the updated identity cookie).
+
+With or without a custom `UserManager`, you must register the `UserManager` and `RotatingTokenUserStore` implementations as spring beans via your app's `grails-app/conf/spring/resources.groovy` file. See the sample `resources.groovy` included in this plugin as an example.
+
+You must also implement a custom `org.c02e.plugin.rememberme.rotating.RotatingTokenUser` class to keep track of your app's user-information for the current user, such as his/her username or ID. To "login" a user, pass an instance of that class representing the current user to the `remember` method of the `BasicSessionlessRememberMeService`; to "logout", call the `forget` method on the service. To access the identity of the current user when "logged-in", check the `user` property of the `BasicSessionlessRememberMeService` -- it will return an instance of your app's `RotatingTokenUser` class for the current user (or `null` if the user is not logged in).
+
+See the sample `grails-app/controllers/test/TestController.groovy` for an example of login and logout; and see `grails-app/conf/test/TestFilters.groovy` for an example of allowing only logged-in users to access certain controllers/actions.
+
+This plugin also provides the following tags (through the `org.c02e.plugin.rememberme.BasicSessionlessRememberMeTagLib`):
+
+    * `<rememberme:user>`: prints an HTML-encoded property value of the current user
+    * `<rememberme:withUser>`: adds the current user as the `user` var to the current GSP context
+    * `<rememberme:yes>`: displays the tag body when current user is logged in
+    * `<rememberme:no>`: displays the tag body when current user is not logged in
+
+For config settings, see `org.c02e.plugin.rememberme.BasicSessionlessRememberMeService` and `org.c02e.plugin.rememberme.rotating.RotatingTokenUserManager`.
+

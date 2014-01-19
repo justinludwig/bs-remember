@@ -1,6 +1,6 @@
-import com.pitchstone.plugin.rememberme.BasicSessionlessRememberMeService
-import com.pitchstone.plugin.rememberme.rotating.RotatingTokenUserManager
-import com.pitchstone.plugin.rememberme.rotating.inmemory.InMemoryUserStore
+import org.c02e.plugin.rememberme.BasicSessionlessRememberMeService
+import org.c02e.plugin.rememberme.rotating.RotatingTokenUserManager
+import org.c02e.plugin.rememberme.rotating.inmemory.InMemoryUserStore
 
 beans = {
     springConfig.addAlias 'basicSessionlessRememberMeService', 'rememberMe'

@@ -1,7 +1,7 @@
 package test
 
-import com.pitchstone.plugin.rememberme.Token
-import com.pitchstone.plugin.rememberme.rotating.RotatingTokenUser
+import org.c02e.plugin.rememberme.Token
+import org.c02e.plugin.rememberme.rotating.RotatingTokenUser
 
 class TestUser implements RotatingTokenUser {
 
