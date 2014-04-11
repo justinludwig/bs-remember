@@ -97,7 +97,7 @@ class RotatingTokenUserManager implements UserManager, InitializingBean {
      * @param now (optional) Current date with which to initialize.
      */
     void initUser(RotatingTokenUser user,
-            String period = null, boolean sessionCookie = false,
+            String period = null, Boolean sessionCookie = null,
             Date now = new Date()) {
         user.rememberMeToken = generateToken()
 
@@ -109,12 +109,11 @@ class RotatingTokenUserManager implements UserManager, InitializingBean {
         else
             period = user.rememberMePeriod
 
-        if (sessionCookie)
-            user.rememberMeSessionCookie = true
-
         def expires = calcUntil(period, now)
         user.rememberMeExpires = expires
 
+        if (sessionCookie != null)
+            user.rememberMeSessionCookie = sessionCookie
         if (!user.rememberMeSessionCookie)
             user.rememberMeUntil = expires
 
