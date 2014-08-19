@@ -142,7 +142,7 @@ class RotatingTokenUserManager implements UserManager, InitializingBean {
 
         Thread.start {
             while (running) {
-                service?.log?.info "rotating tokens..."
+                service?.log?.debug "rotating tokens..."
 
                 try {
                     rotate prev, now
@@ -153,7 +153,7 @@ class RotatingTokenUserManager implements UserManager, InitializingBean {
                 // sleep until next rotation period
                 prev = new Date()
                 now = calcUntil(rotatePeriod, prev)
-                service?.log?.info "...rotate done until ${now}"
+                service?.log?.debug "...rotate done until ${now}"
 
                 Thread.sleep now.time - prev.time
             }
