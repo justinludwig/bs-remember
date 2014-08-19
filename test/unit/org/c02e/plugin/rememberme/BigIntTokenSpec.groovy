@@ -44,9 +44,14 @@ class BigIntTokenSpec extends Specification {
         then: token.bigInt == 123
     }
 
-    def "url-encoded cookieValues are decoded before converting to bigInt"() {
-        when: def token = new BigIntToken(cookieValue: 'X%2f%2b0')
-        then: token.bigInt == 6291380
+    def "websafe base-64 cookieValues are encoded after converting from bigInt"() {
+        when: def token = new BigIntToken(bigInt: -4341164982274)
+        then: token.cookieValue == '_A0-Zz_-'
+    }
+
+    def "websafe base-64 cookieValues are decoded before converting to bigInt"() {
+        when: def token = new BigIntToken(cookieValue: '_A0-Zz_-')
+        then: token.bigInt == -4341164982274
     }
 
 

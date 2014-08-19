@@ -38,7 +38,7 @@ class BigIntToken implements Token {
 
     String getCookieValue() {
         if (cookieValue == null && bigInt != null)
-            cookieValue = bigInt.toByteArray().encodeAsBase64().replaceFirst(/=+$/, '')
+            cookieValue = encodeWeb64(bigInt.toByteArray())
         return cookieValue
     }
 
@@ -67,7 +67,7 @@ class BigIntToken implements Token {
 
     BigInteger getBigInt() {
         if (bigInt == null && cookieValue != null)
-            bigInt = new BigInteger(cookieValue.decodeURL().decodeBase64())
+            bigInt = new BigInteger(decodeWeb64(cookieValue))
         return bigInt
     }
 
@@ -75,4 +75,17 @@ class BigIntToken implements Token {
         bigInt = x
         cookieValue = null
     }
+
+    String encodeWeb64(byte[] b) {
+        if (!b) return ''
+        b.encodeAsBase64().
+            replaceAll(/\+/, '-').
+            replaceAll('/', '_').
+            replaceFirst(/=+$/, '')
+    }
+
+    byte[] decodeWeb64(String s) {
+        (s ?: '').replaceAll(/-/, '+').replaceAll(/_/, '/').decodeBase64()
+    }
+
 }
