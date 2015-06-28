@@ -4,9 +4,9 @@ import org.springframework.web.filter.DelegatingFilterProxy
 
 class BasicSessionlessRememberMeGrailsPlugin {
     // the plugin version
-    def version = "0.1-SNAPSHOT"
+    def version = "0.1"
     // the version or versions of Grails the plugin is designed for
-    def grailsVersion = "2.0 > *"
+    def grailsVersion = "2.3 > *"
     // the other plugins this plugin depends on
     def dependsOn = [:]
     // resources that are excluded from plugin packaging
@@ -17,10 +17,9 @@ class BasicSessionlessRememberMeGrailsPlugin {
         'web-app/*/test/*.*',
     ]
 
-    // TODO Fill in these fields
     def title = "Basic Sessionless Remember Me Plugin" // Headline display name of the plugin
     def author = "Justin Ludwig"
-    def authorEmail = "justin@codetechnology.org"
+    def authorEmail = "justin@codetechnology.com"
     def description = '''
 Uses a cookie to keep track of logged-in users instead of the servlet session.
 '''.trim()
@@ -36,7 +35,7 @@ Uses a cookie to keep track of logged-in users instead of the servlet session.
     // Details of company behind the plugin (if there is one)
     def organization = [
         name: "CODE Technology",
-        url: "http://codesurvey.org/",
+        url: "http://www.codetechnology.com/",
     ]
 
     // Any additional developers beyond the author specified above.
@@ -46,7 +45,7 @@ Uses a cookie to keep track of logged-in users instead of the servlet session.
 //    def issueManagement = [ system: "JIRA", url: "http://jira.grails.org/browse/GPMYPLUGIN" ]
 
     // Online location of the plugin's browseable source code.
-//    def scm = [ url: "http://svn.codehaus.org/grails-plugins/" ]
+    def scm = [ url: "https://github.com/justinludwig/bs-remember" ]
 
     def doWithWebDescriptor = { xml ->
         log.info "installing BasicSessionlessRememberMeFilter"
