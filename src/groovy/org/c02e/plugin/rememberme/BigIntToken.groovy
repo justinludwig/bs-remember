@@ -58,7 +58,7 @@ class BigIntToken implements Token {
     }
 
     String toString() {
-        getCookieValue() ?: 'null'       
+        getCookieValue() ?: 'null'
     }
 
     // impl

@@ -18,7 +18,7 @@ class ResponseWrapper extends HttpServletResponseWrapper {
         super(rs)
         this.writeCookie = writeCookie
     }
-    
+
     ServletOutputStream getOutputStream() throws IOException {
         writeCookie()
         super.outputStream

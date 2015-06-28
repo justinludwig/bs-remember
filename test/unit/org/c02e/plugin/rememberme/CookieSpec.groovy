@@ -62,7 +62,7 @@ class CookieSpec extends Specification {
             cookie.path == '/'
     }
 
-    
+
     def "send basic cookie"() {
         setup:
             def headers = [:]
@@ -75,7 +75,7 @@ class CookieSpec extends Specification {
             headers.'Set-Cookie' ==
                 'bs_me=123; expires=Sat, 01-Jan-2000 00:30:00 GMT'
     }
-    
+
     def "send custom cookie"() {
         setup:
             def headers = [:]

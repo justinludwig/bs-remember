@@ -36,7 +36,7 @@ class BasicSessionlessRememberMeServiceSpec extends Specification {
         RCH.metaClass.static.getRequestAttributes = { -> [
             getAttribute: { String name, int scope -> request[name] },
             removeAttribute: { String name, int scope -> request.remove name },
-            setAttribute: { String name, Object value, int scope -> 
+            setAttribute: { String name, Object value, int scope ->
                 request[name] = value
             },
             request: request,

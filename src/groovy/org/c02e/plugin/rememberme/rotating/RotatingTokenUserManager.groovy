@@ -38,7 +38,7 @@ class RotatingTokenUserManager implements UserManager, InitializingBean {
 
         autoStart = autoStart ?: config?.autoStart != false
         rotatePeriod = rotatePeriod ?: config?.rotatePeriod ?: '10 minutes'
-        
+
         if (autoStart)
             startRotating()
     }

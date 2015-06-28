@@ -13,7 +13,7 @@ class TestFilters {
                 def url = request.queryString ?
                     "${request.forwardURI}?${request.queryString}" :
                     request.forwardURI
-                
+
                 redirect controller: 'test', action: 'login', params: [next: url]
                 return false
             }
